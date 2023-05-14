@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from static import config
 from db import db
 from base import base
+# from models import Phone, User #引入后才能使用create_all在数据库中创建表
 
 
 def create_app():
@@ -24,7 +25,7 @@ app = create_app()
 with app.app_context():
     db.create_all()
 # 要让Flask-Migrate能够管理app中的数据库，需要使用Migrate(app,db)来绑定app和数据库
-migrate = Migrate(app, db)
+# migrate = Migrate(app, db)
 
 if __name__ == '__main__':
     # app = create_app()
