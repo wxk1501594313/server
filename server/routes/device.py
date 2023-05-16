@@ -30,3 +30,58 @@ def get_devices():
         device = Phone.query.filter_by(code=device_code[0]).first()
         device_list.append({'code': device.code, 'name': device.name, 'image': device.image})
     return jsonify({'code': 200, 'device': device_list})
+
+@base.route('/gohome', methods=["GET"])
+def go_home():
+    order = 'adb shell input keyevent 3'
+    os.popen(order).read()
+    return jsonify({'code': 200})
+
+@base.route('/getCoreInformation', methods=['GET'])
+def get_core_infromation():
+    order_battery = 'adb shell dumpsys battery'
+    order_screen = 'adb shell wm size'
+    order_ip = 'adb shell ifconfig wlan0'
+    order_android_id = 'adb shell settings get secure android_id'
+    order_cpu = 'adb shell cat /proc/cpuinfo'
+    order_memory = 'adb shell cat /proc/meminfo'
+
+    out_battery = os.popen(order_battery).read()
+    out_screen = os.popen(order_screen).read()
+    out_ip = os.popen(order_ip).read()
+    out_android_id = os.popen(order_android_id).read()
+    out_cpu = os.popen(order_cpu).read()
+    out_memory = os.popen(order_memory).read()
+
+    # 计算电量
+    max_battery = '{:.0f}'.format(int(out_battery.split('\n')[5].split(" ")[-1])/1000)
+    cur_battery = '{:.0f}'.format(int(out_battery.split('\n')[6].split(" ")[-1])/1000)
+    # 计算屏幕尺寸
+    screen_x = out_screen.split(" ")[-1].split("x")[0]
+    screen_y = out_screen.split(" ")[-1].split("x")[1][:-1]
+    # 计算ip
+    ip = out_ip.split('\n')[1]
+    ip = re.split(r'[ ]+', ip)[2].split(":")[1]
+    # 计算安卓版本
+    android_id = out_android_id.split('\n')[0]
+    # 计算cpu
+    cpu_num = len(out_cpu.split('\n\n'))
+    print(out_memory)
+    max_memory = out_memory.split('\n')[0]
+    max_memory = re.split(r'[ ]+', max_memory)[1]
+    cur_memory = out_memory.split('\n')[2   ]
+    cur_memory = re.split(r'[ ]+', cur_memory)[1]
+    max_memory = '{:.2f}'.format(int(max_memory)/1024/1024)
+    free_memory = '{:.2f}'.format(int(cur_memory)/1024/1024)
+    return jsonify(
+        {'code': 200,
+         'max_battery': max_battery,
+         'cur_battery': cur_battery,
+         'screen_x': screen_x,
+         'screen_y': screen_y,
+         'ip': ip,
+         'android_id': android_id,
+         'cpu_num': cpu_num,
+         'max_memory': max_memory,
+         'free_memory': free_memory
+         })
