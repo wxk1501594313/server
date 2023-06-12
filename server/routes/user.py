@@ -23,3 +23,7 @@ def get_user_info():
     if user is not None:
         return jsonify({'msg': '查询成功', 'code': 200, 'userInfo': {'userName': user.username, 'image': user.image}})
     return jsonify({'msg': '查询失败', 'code': 500})
+
+@base.route('/test', methods=['GET'])
+def test():
+    return "hello"

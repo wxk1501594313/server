@@ -6,7 +6,7 @@ PORT = 3306
 # 连接MySQL的用户名，自己设置
 USERNAME = "root"
 # 连接MySQL的密码，自己设置
-PASSWORD = "123456"
+PASSWORD = "1234"
 # MySQL上创建的数据库名称
 DATABASE = "test"
 DB_URI = 'mysql+pymysql://{}:{}@{}:{}/{}'.format(USERNAME, PASSWORD, HOSTNAME, PORT, DATABASE)

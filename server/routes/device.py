@@ -1,10 +1,19 @@
 import re
 from datetime import datetime
-
+import subprocess
 from base import base
 import os
 from flask import jsonify
 from models.Phone import Phone
+from flask import request, Response
+from view.vedio import ScreenMonitor
+import cv2
+from PIL import Image
+import base64
+
+sc = ScreenMonitor()
+sc.start_monitor()
+count = 0
 
 @base.route('/screen', methods=['GET'])
 def get_method_info():
@@ -41,7 +50,7 @@ def go_home():
 def get_core_infromation():
     order_battery = 'adb shell dumpsys battery'
     order_screen = 'adb shell wm size'
-    order_ip = 'adb shell ifconfig wlan0'
+    order_ip = 'adb shell ifconfig ccmni0'
     order_android_id = 'adb shell settings get secure android_id'
     order_cpu = 'adb shell cat /proc/cpuinfo'
     order_memory = 'adb shell cat /proc/meminfo'
@@ -61,6 +70,7 @@ def get_core_infromation():
     screen_y = out_screen.split(" ")[-1].split("x")[1][:-1]
     # 计算ip
     ip = out_ip.split('\n')[1]
+    print(ip)
     ip = re.split(r'[ ]+', ip)[2].split(":")[1]
     # 计算安卓版本
     android_id = out_android_id.split('\n')[0]
@@ -85,3 +95,37 @@ def get_core_infromation():
          'max_memory': max_memory,
          'free_memory': free_memory
          })
+
+@base.route('/adbCommand', methods=['POST'])
+def adb_command():
+    code = request.json['code']
+    command = request.json['command']
+    print(code)
+    print(command)
+    order = 'adb -s ' + code + ' shell ' + command
+    print(order)
+    adbResult = os.popen(order).read()
+    print(adbResult)
+    return jsonify({'code': 200, 'adbResult': adbResult})
+
+
+def gen(camera):
+    while True:
+        frame = camera.get_frame()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
+@base.route('/video_feed', methods=['GET'])
+def video_feed():
+    global count
+    filepath = './screen/screen' + str(count) + '.png'
+    # cv2.imwrite(filepath, sc.current_frame)
+    im = Image.fromarray(sc.current_frame)
+    im.save(filepath)
+    count += 1
+    img_stream = ''
+    with open(filepath, 'rb') as img_f:
+        img_stream = img_f.read()
+        img_stream = base64.b64encode(img_stream).decode()
+    return jsonify({'code': 200, 'screen': img_stream})

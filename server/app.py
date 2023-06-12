@@ -1,7 +1,6 @@
 # app.py
 # 主app文件，运行文件
 from flask import Flask
-from flask_migrate import Migrate
 from static import config
 from db import db
 from base import base
@@ -22,8 +21,8 @@ def create_app():
     return app1
 
 app = create_app()
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#     db.create_all()
 # 要让Flask-Migrate能够管理app中的数据库，需要使用Migrate(app,db)来绑定app和数据库
 # migrate = Migrate(app, db)
 
